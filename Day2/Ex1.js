@@ -1,9 +1,5 @@
 const fs = require('fs');
 
-const redNumber = 12;
-const greenNumber = 13;
-const blueNumber = 14;
-
 fs.readFile('input.txt', (err, inputD) => {
     if (err) throw err;
 
