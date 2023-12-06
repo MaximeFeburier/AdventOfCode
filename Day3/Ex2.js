@@ -2,12 +2,12 @@ const fs = require('fs');
 
 fs.readFile('input.txt', (err, inputD) => {
 
-    //regex is numeric or point or space
-    const regex = /^[\d. ]+$/;
+    //regex is only *
+    const regex = /^[\*]+$/;
 
-    //verify if char is numeric or point or space
+    //verify if char is *
     const isSymbol = (char) => {
-        return !char.match(regex);
+        return char.match(regex);
     }
 
     //numeric regex
@@ -18,72 +18,75 @@ fs.readFile('input.txt', (err, inputD) => {
         return char && !!char.match(numericRegex);
     }
 
-
-    //return all cells arround a specify cell
-    const allCellsArround = (i, j) => [
+    //return all cells around specify cell
+    const allCellsAround = (i, j) => [
         [i - 1, j - 1], [i - 1, j], [i - 1, j + 1],
         [i, j - 1], [i, j + 1],
         [i + 1, j - 1], [i + 1, j], [i + 1, j + 1]
     ];
 
+    const containInPassedIndex = (i, j, passedIndex) => {
+        return passedIndex.some(idxs => {
+            return idxs[0] <= j && idxs[1] >= j && idxs[2] === i;
+        });
+    }
 
-    //return all cells arround a specify cell with a symbol
-    const checkCellsArround = (i, j) => {
+    const checkCellsAroundForNumber = (i, j) => {
         let indexOfNumber = [];
-        allCellsArround(i, j).forEach(cell => {
-            if (isSymbolArround(cell[0], cell[1])) {
-                indexOfNumber.push(cell);
+        let passedIndex = [];
+        allCellsAround(i, j).forEach(cell => {
+            if (isNumericCell(cell[0], cell[1]) && !containInPassedIndex(cell[0], cell[1], passedIndex)) {
+                indexOfNumber.push(getNumberAndReplaceUsed(cell[1], cell[0], passedIndex));
             }
         });
         return indexOfNumber;
     }
 
-    //verify if cell is a symbol
-    const isSymbolArround = (i, j) => {
+    const isNumericCell = (i, j) => {
         if (i < 0 || j < 0 || i >= lines.length || j >= lines[i].length) {
             return false;
         } else {
-            return isSymbol(lines[i][j]);
+            return isNumeric(lines[i][j]);
         }
     }
 
     //get number and replace used cells by a point to don't use again
-    const getNumberAndReplaceUsed = (j, line) => {
+    const getNumberAndReplaceUsed = (j, i, indexPassed) => {
+        const line = lines[i].split('');
         let numberAfter = '';
         let numberBefore = '';
         let index = 1;
         while (j + index < line.length && isNumeric(line[j + index])) {
             numberAfter = numberAfter + line[j + index];
-            line[j + index] = '.';
+            line[i][j + index] = '.';
             index++;
         }
         let index2 = 0;
         while ((j - index2) >= 0 && isNumeric(line[j - index2])) {
             numberBefore = line[j - index2] + numberBefore;
-            line[j - index2] = '.';
+            line[i][j - index2] = '.';
             index2++;
         }
+        indexPassed.push([j - index2, j + index, i]);
         return +numberBefore.concat(numberAfter);
     }
 
+
     if (err) throw err;
 
-    const lines = inputD.toString().split('\r\n');
+    let lines = inputD.toString().split('\r\n');
     const result = [];
     for (let i = 0; i < lines.length; i++) {
         const currentLine = lines[i].split('');
 
         for (let j = 0; j < currentLine.length; j++) {
-            if (isNumeric(lines[i][j])) {
-                const symbolIndex = checkCellsArround(i, j);
-                if (symbolIndex.length > 0) {
-                    const number = getNumberAndReplaceUsed(j, currentLine);
-                    result.push(number);
+            if (isSymbol(lines[i][j])) {
+                const symbolIndex = checkCellsAroundForNumber(i, j);
+                if (symbolIndex.length === 2) {
+                    result.push(symbolIndex.reduce((a, b) => a * b));
                 }
             }
         }
     }
     console.log(result.reduce((a, b) => a + b));
 });
-
-
