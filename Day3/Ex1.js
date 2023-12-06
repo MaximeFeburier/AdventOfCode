@@ -2,10 +2,6 @@ const fs = require('fs');
 
 fs.readFile('input.txt', (err, inputD) => {
 
-    String.prototype.replaceAt = function(index, replacement) {
-        return this.substring(0, index) + replacement + this.substring(index + replacement.length);
-    }
-
     //regex is numeric or point or space
     const regex = /^[\d. ]+$/;
 
